@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Amex Merchant Offer Recommendation Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%);
+            min-height: 100vh;
+            padding: 32px 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .merchant-header {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 32px;
+            margin-bottom: 32px;
+        }
+
+        .merchant-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .merchant-logo {
+            font-size: 36px;
+        }
+
+        .merchant-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .merchant-subtitle {
+            color: #4b5563;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .objectives-section {
+            border-top: 1px solid #e5e7eb;
+            padding-top: 24px;
+            margin-top: 24px;
+        }
+
+        .objectives-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 16px;
+        }
+
+        .objectives-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .objective-card {
+            padding: 16px;
+            border-radius: 6px;
+            border: 2px solid #fca5a5;
+            background: #fef2f2;
+        }
+
+        .objective-card.medium {
+            border-color: #fcd34d;
+            background: #fefce8;
+        }
+
+        .objective-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .objective-title {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .objective-badge {
+            font-size: 11px;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: #fecaca;
+            color: #991b1b;
+        }
+
+        .objective-badge.medium {
+            background: #fde047;
+            color: #854d0e;
+        }
+
+        .objective-description {
+            font-size: 14px;
+            color: #374151;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .stat-card.accepted {
+            border-left-color: #10b981;
+        }
+
+        .stat-card.declined {
+            border-left-color: #6b7280;
+        }
+
+        .stat-label {
+            color: #4b5563;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .stat-card.accepted .stat-number {
+            color: #10b981;
+        }
+
+        .stat-card.declined .stat-number {
+            color: #6b7280;
+        }
+
+        /* Main content */
+        .offers-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 32px;
+        }
+
+        .offers-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 16px;
+            margin-top: 32px;
+        }
+
+        .section-title.accepted {
+            color: #059669;
+        }
+
+        .section-title.declined {
+            color: #6b7280;
+        }
+
+        /* Offer Card */
+        .offer-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 16px;
+            background: white;
+            transition: all 300ms ease;
+        }
+
+        .offer-card.accepted {
+            background: #f0fdf4;
+            border-color: #86efac;
+        }
+
+        .offer-card.declined {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+        .offer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .offer-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+
+        .offer-objective {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .offer-objective strong {
+            color: #111827;
+        }
+
+        .offer-badge {
+            background: #dcfce7;
+            color: #166534;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .offer-badge.declined {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .offer-reason {
+            background: #eef2ff;
+            border-left: 4px solid #6366f1;
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+
+        .offer-reason p {
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .offer-reason strong {
+            color: #4f46e5;
+            font-weight: 600;
+        }
+
+        .offer-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .metric-box {
+            background: #dbeafe;
+            padding: 16px;
+            border-radius: 6px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #4b5563;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .metric-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #1e40af;
+        }
+
+        .offer-resources {
+            background: #f3f4f6;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        .resources-label {
+            font-size: 12px;
+            color: #4b5563;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .resource-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            font-size: 14px;
+        }
+
+        .resource-item div {
+            margin-bottom: 8px;
+        }
+
+        .resource-item span:first-child {
+            color: #6b7280;
+        }
+
+        .resource-item strong {
+            color: #111827;
+            font-weight: 600;
+        }
+
+        .offer-details {
+            background: #fffbeb;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        .details-label {
+            font-size: 12px;
+            color: #4b5563;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            font-size: 14px;
+        }
+
+        .details-item {
+            margin-bottom: 4px;
+        }
+
+        .details-item span:first-child {
+            color: #6b7280;
+        }
+
+        .details-item strong {
+            color: #111827;
+            font-weight: 600;
+        }
+
+        .offer-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 200ms ease;
+        }
+
+        .btn-accept {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-accept:hover {
+            background: #059669;
+        }
+
+        .btn-decline {
+            background: #9ca3af;
+            color: white;
+        }
+
+        .btn-decline:hover {
+            background: #6b7280;
+        }
+
+        .offer-status {
+            padding: 16px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .offer-status.accepted {
+            background: #dcfce7;
+            border: 2px solid #86efac;
+        }
+
+        .offer-status.declined {
+            background: #f3f4f6;
+            border: 2px solid #d1d5db;
+        }
+
+        .offer-status p:first-child {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .offer-status p:last-child {
+            font-size: 14px;
+        }
+
+        .offer-status.accepted p:first-child {
+            color: #166534;
+        }
+
+        .offer-status.accepted p:last-child {
+            color: #15803d;
+        }
+
+        .offer-status.declined p:first-child {
+            color: #374151;
+        }
+
+        .offer-status.declined p:last-child {
+            color: #6b7280;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .offer-metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .resource-item {
+                grid-template-columns: 1fr;
+            }
+
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .offer-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Merchant Header -->
+        <div class="merchant-header">
+            <div class="merchant-info">
+                <div class="merchant-logo">🏪</div>
+                <div>
+                    <div class="merchant-name">TechGear Electronics Store</div>
+                    <div class="merchant-subtitle">AI-Powered Offer Recommendations</div>
+                </div>
+            </div>
+
+            <div class="objectives-section">
+                <div class="objectives-title">Merchant Objectives</div>
+                <div class="objectives-grid">
+                    <div class="objective-card">
+                        <div class="objective-header">
+                            <div class="objective-title">Increase Repeat Purchases</div>
+                            <div class="objective-badge">HIGH</div>
+                        </div>
+                        <div class="objective-description">Encourage customers to return within 30 days</div>
+                    </div>
+                    <div class="objective-card">
+                        <div class="objective-header">
+                            <div class="objective-title">Clear Inventory</div>
+                            <div class="objective-badge">HIGH</div>
+                        </div>
+                        <div class="objective-description">Move seasonal electronics stock</div>
+                    </div>
+                    <div class="objective-card medium">
+                        <div class="objective-header">
+                            <div class="objective-title">Drive Traffic</div>
+                            <div class="objective-badge medium">MEDIUM</div>
+                        </div>
+                        <div class="objective-description">Increase foot traffic during off-peak hours (2PM-5PM)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Pending</div>
+                <div class="stat-number" id="statPending">5</div>
+            </div>
+            <div class="stat-card accepted">
+                <div class="stat-label">Accepted</div>
+                <div class="stat-number" id="statAccepted">0</div>
+            </div>
+            <div class="stat-card declined">
+                <div class="stat-label">Declined</div>
+                <div class="stat-number" id="statDeclined">0</div>
+            </div>
+        </div>
+
+        <!-- Offers -->
+        <div class="offers-container">
+            <div class="offers-title">AI-Generated Offer Recommendations</div>
+            <div id="offersContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const offers = [
+            {
+                id: 'offer_001',
+                title: '20% Cashback on Electronics',
+                objective: 'increase_repeat_purchases',
+                reason: 'Based on member purchase history showing high engagement with electronics. This offer targets frequent buyers who are likely to return.',
+                impact: 'Expected 18% increase in repeat visits within 30 days',
+                confidence: '89%',
+                template: 'Amex Merchant Template: Tiered Cashback',
+                benefit: 'Elite Member Exclusive Reward',
+                details: { discount: '20%', category: 'Electronics', validUntil: '30 days' },
+                status: 'pending'
+            },
+            {
+                id: 'offer_002',
+                title: 'Flash Sale: 30% Off Clearance Items',
+                objective: 'clear_inventory',
+                reason: 'AI analysis shows this segment has low-engagement inventory. Flash sale format creates urgency and targets price-sensitive members.',
+                impact: 'Expected 25% increase in clearance item sales',
+                confidence: '78%',
+                template: 'Amex Merchant Template: Time-Limited Flash Sale',
+                benefit: 'Savings Pro Member Benefit',
+                details: { discount: '30%', category: 'Clearance Items', validUntil: '5 days' },
+                status: 'pending'
+            },
+            {
+                id: 'offer_003',
+                title: 'Happy Hour Special: $10 Off (2PM-5PM)',
+                objective: 'drive_traffic',
+                reason: 'Targeted time-based offer to drive traffic during typically slow afternoon hours. This demographic shows high conversion during midday shopping.',
+                impact: 'Expected 35% increase in 2PM-5PM traffic',
+                confidence: '85%',
+                template: 'Amex Merchant Template: Time-Based Offer',
+                benefit: 'Timely Deals Member Benefit',
+                details: { discount: '$10 off $50+', validTime: '2:00 PM - 5:00 PM', validUntil: '60 days' },
+                status: 'pending'
+            },
+            {
+                id: 'offer_004',
+                title: 'Referral Bonus: $25 Credit',
+                objective: 'increase_repeat_purchases',
+                reason: 'Members who refer friends show 3x higher lifetime value. This offer leverages social networks to drive both new customers and repeat engagement.',
+                impact: 'Expected 40% increase in referred customer acquisition',
+                confidence: '72%',
+                template: 'Amex Merchant Template: Referral Program',
+                benefit: 'Network Rewards Member Benefit',
+                details: { reward: '$25 credit per referral', maxRewards: 'Unlimited', validUntil: '90 days' },
+                status: 'pending'
+            },
+            {
+                id: 'offer_005',
+                title: '5x Points on Bundle Purchases',
+                objective: 'increase_repeat_purchases',
+                reason: 'Bundle purchases indicate high-intent customers. Multiplier rewards incentivize larger basket sizes and increase average order value.',
+                impact: 'Expected 22% increase in average order value',
+                confidence: '81%',
+                template: 'Amex Merchant Template: Points Multiplier',
+                benefit: 'Premium Member Rewards Program',
+                details: { points: '5x points', applicableTo: 'Bundle purchases (2+ items)', validUntil: '45 days' },
+                status: 'pending'
+            }
+        ];
+
+        function renderOffers() {
+            const pending = offers.filter(o => o.status === 'pending');
+            const accepted = offers.filter(o => o.status === 'accepted');
+            const declined = offers.filter(o => o.status === 'declined');
+
+            let html = '';
+
+            if (pending.length > 0) {
+                html += `<div class="section-title">Pending Offers</div>`;
+                html += pending.map(offer => renderOfferCard(offer)).join('');
+            }
+
+            if (accepted.length > 0) {
+                html += `<div class="section-title accepted">✓ Accepted Offers</div>`;
+                html += accepted.map(offer => renderOfferCard(offer)).join('');
+            }
+
+            if (declined.length > 0) {
+                html += `<div class="section-title declined">✗ Declined Offers</div>`;
+                html += declined.map(offer => renderOfferCard(offer)).join('');
+            }
+
+            document.getElementById('offersContent').innerHTML = html;
+        }
+
+        function renderOfferCard(offer) {
+            const detailsHtml = Object.entries(offer.details)
+                .map(([key, value]) => {
+                    const displayKey = key.replace(/([A-Z])/g, ' $1').trim();
+                    return `<div class="details-item"><span>${displayKey}:</span> <strong>${value}</strong></div>`;
+                })
+                .join('');
+
+            const buttonsHtml = offer.status === 'pending'
+                ? `
+                    <div class="offer-buttons">
+                        <button class="btn btn-accept" onclick="acceptOffer('${offer.id}')">✓ Accept Offer</button>
+                        <button class="btn btn-decline" onclick="declineOffer('${offer.id}')">✗ Decline</button>
+                    </div>
+                `
+                : offer.status === 'accepted'
+                ? `<div class="offer-status accepted"><p>✓ Offer Accepted</p><p>This offer is now active</p></div>`
+                : `<div class="offer-status declined"><p>✗ Offer Declined</p><p>You can accept this offer later if you change your mind</p></div>`;
+
+            const badge = offer.status === 'accepted'
+                ? `<div class="offer-badge">✓ Accepted</div>`
+                : offer.status === 'declined'
+                ? `<div class="offer-badge declined">✗ Declined</div>`
+                : '';
+
+            return `
+                <div class="offer-card ${offer.status}">
+                    <div class="offer-header">
+                        <div>
+                            <div class="offer-title">${offer.title}</div>
+                            <div class="offer-objective">Objective: <strong>${offer.objective.replace(/_/g, ' ').toUpperCase()}</strong></div>
+                        </div>
+                        ${badge}
+                    </div>
+
+                    <div class="offer-reason">
+                        <p><strong>Why Recommended:</strong> ${offer.reason}</p>
+                    </div>
+
+                    <div class="offer-metrics">
+                        <div class="metric-box">
+                            <div class="metric-label">Estimated Impact</div>
+                            <div class="metric-value">${offer.impact}</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-label">Confidence Level</div>
+                            <div class="metric-value">${offer.confidence}</div>
+                        </div>
+                    </div>
+
+                    <div class="offer-resources">
+                        <div class="resources-label">Associated Amex Resources</div>
+                        <div class="resource-item">
+                            <div><span>Template:</span> <strong>${offer.template}</strong></div>
+                            <div><span>Benefit:</span> <strong>${offer.benefit}</strong></div>
+                        </div>
+                    </div>
+
+                    <div class="offer-details">
+                        <div class="details-label">Offer Details</div>
+                        <div class="details-grid">
+                            ${detailsHtml}
+                        </div>
+                    </div>
+
+                    ${buttonsHtml}
+                </div>
+            `;
+        }
+
+        function updateStats() {
+            const pending = offers.filter(o => o.status === 'pending').length;
+            const accepted = offers.filter(o => o.status === 'accepted').length;
+            const declined = offers.filter(o => o.status === 'declined').length;
+
+            document.getElementById('statPending').textContent = pending;
+            document.getElementById('statAccepted').textContent = accepted;
+            document.getElementById('statDeclined').textContent = declined;
+        }
+
+        function acceptOffer(offerId) {
+            const offer = offers.find(o => o.id === offerId);
+            if (offer) {
+                offer.status = 'accepted';
+                updateStats();
+                renderOffers();
+            }
+        }
+
+        function declineOffer(offerId) {
+            const offer = offers.find(o => o.id === offerId);
+            if (offer) {
+                offer.status = 'declined';
+                updateStats();
+                renderOffers();
+            }
+        }
+
+        // Initial render
+        renderOffers();
+    </script>
+</body>
+</html>
